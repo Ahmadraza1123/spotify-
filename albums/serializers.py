@@ -10,6 +10,8 @@ class AlbumSerializer(serializers.ModelSerializer):
     cover_image = serializers.ImageField(required=False, use_url=True)
     total_likes = serializers.IntegerField(read_only=True)
     total_dislikes = serializers.IntegerField(read_only=True)
+    total_followers = serializers.IntegerField(read_only=True)
+    total_unfollowers = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Album
@@ -22,4 +24,6 @@ class AlbumSerializer(serializers.ModelSerializer):
             "cover_image",
             "total_likes",
             "total_dislikes",
+            "total_followers",
+            "total_unfollowers",
         ]

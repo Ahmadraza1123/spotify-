@@ -9,6 +9,8 @@ class SongSerializer(serializers.ModelSerializer):
     cover_image = Base64ImageField(source="album.cover_image", read_only=True)
     total_likes = serializers.IntegerField(read_only=True)
     total_dislikes = serializers.IntegerField(read_only=True)
+    artist_name = serializers.CharField(source="album.artist.username", read_only=True)
+
     class Meta:
         model = Song
         fields = [
@@ -20,4 +22,5 @@ class SongSerializer(serializers.ModelSerializer):
             "cover_image",
             "total_likes",
             "total_dislikes",
+            "artist_name"
         ]

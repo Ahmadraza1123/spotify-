@@ -40,10 +40,12 @@ EMAIL_HOST_USER = "ahmadismyname1@gmail.com"
 EMAIL_HOST_PASSWORD = "zjze mhec bfbk xllo"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_FILTER_BACKENDS": [
+        "rest_framework.filters.SearchFilter",
     ],
 }
 

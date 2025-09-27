@@ -5,14 +5,14 @@ from datetime import timedelta
 
 
 class User(AbstractUser):
-    Artist = models.CharField(max_length=255, blank=True, null=True)
+
     email = models.EmailField(unique=True)
     email_verification_token = models.CharField(max_length=64, blank=True, null=True)
     password_reset_token = models.CharField(max_length=64, blank=True, null=True)
     password_reset_token_created_at = models.DateTimeField(blank=True, null=True)
 
     ROLE_CHOICES = (
-        ('normal', 'normal'),
+        ('normal', 'Normal'),
         ('singer', 'Singer'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='normal')

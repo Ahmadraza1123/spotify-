@@ -8,16 +8,8 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.views import APIView
-
 from .models import User
-from .serializers import (
-    RegisterSerializer,
-    LoginSerializer,
-    UserProfileSerializer,
-    ArtistSerializer,
-    AlbumSerializer
-)
-from albums.models import Album
+from .serializers import RegisterSerializer,LoginSerializer,UserProfileSerializer
 
 
 class RegisterView(generics.CreateAPIView):
@@ -149,65 +141,3 @@ class VerifyEmailView(APIView):
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class FollowArtistView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        user = request.user
-        if user.role != "normal":
-            return Response({"error": "Only normal users can follow artists"}, status=403)
-
-        artist_id = request.data.get("artist_id")
-        try:
-            artist = User.objects.get(id=artist_id, role="singer")
-        except User.DoesNotExist:
-            return Response({"message": f"You followed {artist.username}"})
-
-        user.following.add(artist)
-        user.unfollowed.remove(artist)
-        return Response({"message": f"You followed {artist.username}"})
-
-
-class UnfollowArtistView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        user = request.user
-        if user.role != "normal":
-            return Response({"error": "Only normal users can unfollow artists"}, status=403)
-
-        artist_id = request.data.get("artist_id")
-        try:
-            artist = User.objects.get(id=artist_id, role="singer")
-        except User.DoesNotExist:
-            return Response({"error": "Artist not found"}, status=404)
-
-        user.following.remove(artist)
-        user.unfollowed.add(artist)
-        return Response({"message": f"You unfollowed {artist.username}"})
-
-class SearchView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def get(self, request):
-        query = request.GET.get("q", "")
-        if not query:
-            return Response({"error": "Query parameter 'q' is required"}, status=400)
-
-        # Search Artists (singers only)
-        artists = User.objects.filter(role="Singer", Artist__icontains=query)
-        artist_data = ArtistSerializer(artists, many=True).data
-
-        # Search Albums
-        albums = Album.objects.filter(title__icontains=query)
-        album_data = AlbumSerializer(albums, many=True).data
-
-        # Search Songs
-        songs = Song.objects.filter(title__icontains=query)
-        song_data = SongSerializer(songs, many=True).data
-
-        return Response({
-            "artists": artist_data,
-            "albums": album_data,
-            "songs": song_data
-        })

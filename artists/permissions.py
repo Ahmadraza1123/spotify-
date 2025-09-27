@@ -12,7 +12,7 @@ class IsSinger(BasePermission):
         if request.method in SAFE_METHODS:
             return True
 
-        # Only singers allowed for write requests
+
         if request.user.is_authenticated and getattr(request.user, "role", None) == "singer":
             return True
 

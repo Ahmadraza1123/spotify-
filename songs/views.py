@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions,filters
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -8,6 +8,16 @@ from .serializers import SongSerializer
 class SongViewSet(viewsets.ModelViewSet):
     serializer_class = SongSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = [
+        'song_name',
+        'album__title',
+        'album__artist__username',
+    ]
+
+
+
+
 
     def get_queryset(self):
         user = self.request.user
@@ -41,16 +51,20 @@ class SongViewSet(viewsets.ModelViewSet):
     def like_song(self, request, pk=None):
         song = self.get_object()
         user = request.user
+
         if getattr(user, "role", None) == "singer":
             return Response({"error": "Singers cannot like songs."}, status=403)
 
 
         if song.liked_by.filter(id=user.id).exists():
-            return Response({"error": "You already liked this song."}, status=400)
+            song.liked_by.remove(user)
+            return Response({
+                "message": "Like removed",
+                "total_likes": song.total_likes,
+                "total_dislikes": song.total_dislikes
+            })
 
 
-        if song.disliked_by.filter(id=user.id).exists():
-            song.disliked_by.remove(user)
 
         song.liked_by.add(user)
         return Response({
@@ -63,16 +77,23 @@ class SongViewSet(viewsets.ModelViewSet):
     def dislike_song(self, request, pk=None):
         song = self.get_object()
         user = request.user
+
         if getattr(user, "role", None) == "singer":
             return Response({"error": "Singers cannot dislike songs."}, status=403)
 
 
         if song.disliked_by.filter(id=user.id).exists():
-            return Response({"error": "You already disliked this song."}, status=400)
+            song.disliked_by.remove(user)
+            return Response({
+                "message": "Dislike removed",
+                "total_likes": song.total_likes,
+                "total_dislikes": song.total_dislikes
+            })
 
 
         if song.liked_by.filter(id=user.id).exists():
             song.liked_by.remove(user)
+
 
         song.disliked_by.add(user)
         return Response({

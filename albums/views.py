@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions,filters
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -10,6 +10,8 @@ from .serializers import AlbumSerializer
 class AlbumViewSet(viewsets.ModelViewSet):
     serializer_class = AlbumSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["title", "album__title", "album__artist__name"]
 
     def get_queryset(self):
         user = self.request.user
@@ -62,4 +64,37 @@ class AlbumViewSet(viewsets.ModelViewSet):
                 "total_likes": total_likes,
                 "total_dislikes": total_dislikes
             }
+        })
+
+    @action(detail=True, methods=["post"], url_path="follow")
+    def follow_album(self, request, pk=None):
+        user = request.user
+        album = self.get_object()
+
+        if user.role != "normal":
+            return Response({"error": "Only normal users can follow albums"}, status=403)
+
+        album.followers.add(user)
+        album.unfollowers.remove(user)
+
+        return Response({
+            "message": f"You followed album {album.title}",
+            "total_followers": album.total_followers
+        })
+
+
+    @action(detail=True, methods=["post"], url_path="unfollow")
+    def unfollow_album(self, request, pk=None):
+        user = request.user
+        album = self.get_object()
+
+        if user.role != "normal":
+            return Response({"error": "Only normal users can unfollow albums"}, status=403)
+
+        album.followers.remove(user)
+        album.unfollowers.add(user)
+
+        return Response({
+            "message": f"You unfollowed album {album.title}",
+            "total_unfollowers": album.total_unfollowers
         })
